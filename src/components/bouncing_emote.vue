@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import dvd from '@/utils/dvd_phys.js'
+import p2 from '@/utils/second_phys.js'
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
@@ -15,16 +17,13 @@ export default {
 
   data() {
     return {
-        maxX: 0,
-        maxY: 0,
+        imgPhys: undefined,
 
         interval: undefined,
-        posX: getRandomInt(window.innerWidth-100),
-        posY: getRandomInt(window.innerHeight-100),
-        speed: 2,
-        changeX: 1,
-        changeY: 1,
         imgHeight: 96,
+
+        posX: 0,
+        posY: 0,
 
         imgPos: { //@TODO: сделать рандом
             x: 0,
@@ -39,39 +38,21 @@ export default {
   },
 
   mounted() {
-    this.imgPos = {
-            x: this.posX,
-            y: this.posY
+    if (Math.floor(2 * Math.random()) == 1) {
+      this.imgPhys = new p2(this.width, this.imgHeight, getRandomInt(window.innerWidth-100), getRandomInt(window.innerHeight-100))
+    } else {
+      this.imgPhys = new dvd(this.width, this.imgHeight, 1, getRandomInt(window.innerWidth-100), getRandomInt(window.innerHeight-100))
     }
+
+
     this.interval = setInterval(this.update, 4)
   },
 
   methods: {
     update() {
-        let maxX = window.innerWidth
-        let maxY = window.innerHeight
-        this.maxX = maxX
-        this.maxY = maxY
-
-        this.posX += this.speed * this.changeX
-        this.posY += this.speed * this.changeY
-
-        let isRight = this.posX >= (maxX - this.width)
-        let isBottom = this.posY >= (maxY - this.imgHeight)
-        let isTop = this.posY <= 0
-        let isLeft = this.posX <= this.width
-
-        if (isLeft || isRight) {
-            this.changeX *= -1
-        }
-        if (isBottom || isTop) {
-            this.changeY *= -1
-        }
-
-        this.imgPos = {
-            x: this.posX,
-            y: this.posY
-        }
+      let imgPos = this.imgPhys.update(window.innerWidth, window.innerHeight)
+      this.posX = imgPos.x
+      this.posY = imgPos.y
     }
   },
 

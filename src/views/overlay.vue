@@ -27,8 +27,8 @@ export default {
             channelID: null,
 
             // editable:
-            maxEmoteLife: 3,
-            channel: "shampan0v",
+            maxEmoteLife: 5,
+            channel: this.$route.query.channel || "1",
             //
 
             currentEmotes: [],
@@ -77,21 +77,33 @@ export default {
             this.meanMessagesPerSecond = (this.meanMessagesPerSecond + messagesPerSecond) / 2
         },
         async decide(payload) {
-            this.currentEmotes.push({
-                Url: `https://cdn.7tv.app/emote/${payload.extEmotes[0].ID}/3x.webp`,
-                Id: payload.tags.id,
-                Width: Math.floor(payload.extEmotes[0].ratio*32)
-            })
-            setTimeout((id) => {
-                this.currentEmotes = this.currentEmotes.filter((m) => m.Id != id)
-            }, this.maxEmoteLife*1000, payload.tags.id);
+            let top_em = {}
+            for (const m of this.MessagesTemp) {
+                console.log(m.extEmotes)
+                if (top_em[m.extEmotes[0].ID]) {
+                    top_em[m.extEmotes[0].ID] += 1
+                } else {
+                    top_em[m.extEmotes[0].ID] = 1
+                }
+            }
+
+            if (top_em[payload.extEmotes[0].ID] > 5) { // @todo
+                this.MessagesTemp = []
+                this.currentEmotes.push({
+                    Url: `https://cdn.7tv.app/emote/${payload.extEmotes[0].ID}/3x.webp`,
+                    Id: payload.tags.id,
+                    Width: Math.floor(payload.extEmotes[0].ratio*32)
+                })
+                setTimeout((id) => {
+                    this.currentEmotes = this.currentEmotes.filter((m) => m.Id != id)
+                }, this.maxEmoteLife*1000, payload.tags.id);
+            }
         }
     },
     created: async function() {
         this.client = new Twitch(this.channel)
         this.client.OnUserId = this.onUserID
         this.client.OnPrivateMessage = async (payload) => {
-                this.MessagesTemp.push(payload)
                 payload.extEmotes = []
                 /* eslint-disable no-unused-vars */
                 for (const i of payload.parameters.split(" ")) {
